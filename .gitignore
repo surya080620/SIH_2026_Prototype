@@ -1,0 +1,111 @@
+# ================================
+
+# Python
+
+# ================================
+
+# Virtual environment
+
+venv/
+.venv/
+env/
+ENV/
+
+# Python cache
+
+**pycache**/
+*.py[cod]
+*$py.class
+
+# ================================
+
+# Environment & Secrets
+
+# ================================
+
+.env
+.env.*
+!.env.example
+
+# ================================
+
+# ChromaDB
+
+# ================================
+
+chroma_db/
+.chroma/
+chroma/
+
+# ================================
+
+# IDE / Editors
+
+# ================================
+
+.vscode/
+.idea/
+*.code-workspace
+
+# ================================
+
+# OS Files
+
+# ================================
+
+# Windows
+
+Thumbs.db
+Desktop.ini
+
+# macOS
+
+.DS_Store
+
+# ================================
+
+# Logs
+
+# ================================
+
+*.log
+logs/
+
+# ================================
+
+# Python Testing / Coverage
+
+# ================================
+
+.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+
+# ================================
+
+# Build / Distribution
+
+# ================================
+
+build/
+dist/
+*.egg-info/
+
+# ================================
+
+# Jupyter Notebook
+
+# ================================
+
+.ipynb_checkpoints/
+
+# ================================
+
+# Local Database
+
+# ================================
+
+# Uncomment this if standards.db is generated locally
+
+# standards.db

@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>BIS Assistant — Sign in</title>
+<style>
+  :root {
+    --blue-900: #1e3a8a;
+    --blue-800: #1e40af;
+    --blue-50: #eff6ff;
+    --amber-600: #d97706;
+    --amber-50: #fffbeb;
+    --amber-200: #fde68a;
+    --slate-900: #0f172a;
+    --slate-700: #334155;
+    --slate-500: #64748b;
+    --slate-400: #94a3b8;
+    --slate-300: #cbd5e1;
+    --slate-200: #e2e8f0;
+    --slate-100: #f1f5f9;
+    --red-600: #dc2626;
+    --red-50: #fef2f2;
+    --red-100: #fee2e2;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--slate-100);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    padding: 24px;
+  }
+  .card {
+    width: 100%;
+    max-width: 380px;
+    background: #fff;
+    border: 1px solid var(--slate-200);
+    border-radius: 16px;
+    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+    overflow: hidden;
+  }
+  .screen { padding: 32px; }
+  .hidden { display: none; }
+  h1, h2 { font-family: Georgia, "Times New Roman", serif; color: var(--slate-900); margin: 0; }
+  .header-block { display: flex; flex-direction: column; align-items: center; text-align: center; margin-bottom: 32px; }
+  .header-block h1 { font-size: 24px; margin-top: 16px; }
+  .header-block p { font-size: 14px; color: var(--slate-500); margin-top: 4px; line-height: 1.5; }
+  .section-label { font-size: 12px; font-weight: 500; color: var(--slate-400); margin: 0 0 12px; }
+  .role-list { border: 1px solid var(--slate-200); border-radius: 12px; overflow: hidden; }
+  .role-item {
+    width: 100%; background: #fff; border: none; border-left: 4px solid transparent;
+    border-bottom: 1px solid var(--slate-200); padding: 16px; display: flex;
+    align-items: center; justify-content: space-between; text-align: left; cursor: pointer;
+    transition: background 0.15s, border-color 0.15s; font-family: inherit;
+  }
+  .role-item:last-child { border-bottom: none; }
+  .role-item:hover, .role-item:focus-visible { background: var(--amber-50); border-left-color: var(--amber-600); outline: none; }
+  .role-item .title { display: block; font-size: 14px; font-weight: 500; color: var(--slate-900); }
+  .role-item .blurb { display: block; font-size: 12px; color: var(--slate-500); margin-top: 2px; }
+  .role-item .chev { color: var(--slate-300); font-size: 18px; }
+  .back-btn { display: inline-flex; align-items: center; gap: 6px; background: none; border: none; color: var(--slate-500); font-size: 14px; cursor: pointer; padding: 0; margin-bottom: 24px; font-family: inherit; }
+  .back-btn:hover { color: var(--slate-700); }
+  .role-badge { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 500; color: var(--blue-900); background: var(--blue-50); border: 1px solid #dbeafe; border-radius: 6px; padding: 2px 8px; }
+  h2 { font-size: 20px; margin-top: 12px; margin-bottom: 24px; }
+  label { display: block; font-size: 12px; font-weight: 500; color: var(--slate-700); margin-bottom: 6px; }
+  .field { margin-bottom: 16px; }
+  .field-wrap { position: relative; }
+  input[type="text"], input[type="password"] {
+    width: 100%; border: 1px solid var(--slate-300); border-radius: 8px; padding: 10px 12px; font-size: 14px; color: var(--slate-900); font-family: inherit;
+  }
+  input[type="password"] { padding-right: 40px; }
+  input:focus { outline: none; border-color: var(--amber-600); box-shadow: 0 0 0 3px rgba(217, 119, 6, 0.15); }
+  .toggle-eye { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; color: var(--slate-400); font-size: 12px; font-family: inherit; }
+  .error-box { font-size: 12px; color: var(--red-600); background: var(--red-50); border: 1px solid var(--red-100); border-radius: 8px; padding: 8px 12px; margin-bottom: 16px; }
+  .submit-btn { width: 100%; background: var(--blue-900); color: #fff; border: none; border-radius: 8px; padding: 11px; font-size: 14px; font-weight: 500; cursor: pointer; font-family: inherit; transition: background 0.15s; }
+  .submit-btn:hover { background: var(--blue-800); }
+  .mode-switch { font-size: 12px; color: var(--slate-500); text-align: center; margin-top: 20px; }
+  .mode-switch button { background: none; border: none; color: var(--blue-900); font-weight: 500; cursor: pointer; padding: 0; font-size: 12px; font-family: inherit; }
+  .demo-hint { font-size: 11px; color: var(--slate-400); text-align: center; margin-top: 16px; }
+  .demo-hint code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+</style>
+</head>
+<body>
+
+<div class="card">
+  <!-- SCREEN 1: Role selection -->
+  <div id="screen-role" class="screen">
+    <div class="header-block">
+      <svg width="44" height="44" viewBox="0 0 44 44" fill="none" aria-hidden="true">
+        <polygon points="22,4 40,36 4,36" stroke="#1e3a8a" stroke-width="2.5" fill="none" />
+        <circle cx="22" cy="27" r="4" fill="#b45309" />
+      </svg>
+      <h1>BIS Assistant</h1>
+      <p>Your guide to Indian Standards &amp; BIS services</p>
+    </div>
+
+    <p class="section-label">Continue as</p>
+    <div class="role-list" id="role-list"></div>
+  </div>
+
+  <!-- SCREEN 2: Sign in -->
+  <div id="screen-auth" class="screen hidden">
+    <button class="back-btn" id="back-btn">&larr; Change role</button>
+    <span class="role-badge" id="role-badge"></span>
+    <h2 id="auth-heading">Sign in to continue</h2>
+
+    <form id="auth-form">
+      <div class="field">
+        <label for="username">Username</label>
+        <input type="text" id="username" placeholder="Enter your username" autocomplete="off" />
+      </div>
+      <div class="field">
+        <label for="password">Password</label>
+        <div class="field-wrap">
+          <input type="password" id="password" placeholder="Enter your password" autocomplete="off" />
+          <button type="button" class="toggle-eye" id="toggle-eye">Show</button>
+        </div>
+      </div>
+      <div id="error-box" class="error-box hidden"></div>
+      <button type="submit" class="submit-btn" id="submit-btn">Sign in</button>
+    </form>
+
+    <p class="mode-switch" id="mode-switch">
+      New here? <button id="switch-to-signup">Create an account</button>
+    </p>
+    <p class="demo-hint" id="demo-hint"></p>
+  </div>
+</div>
+
+<script>
+  const users = {
+    Consumer: [{ username: "consumer_demo", password: "demo123" }],
+    MSME: [{ username: "msme_demo", password: "demo123" }],
+    Student: [{ username: "student_demo", password: "demo123" }],
+    Manufacturer: [{ username: "manufacturer_demo", password: "demo123" }]
+  };
+
+  const roles = [
+    { id: "Consumer", label: "Consumer", blurb: "Check standards & verify product marks" },
+    { id: "MSME", label: "MSME", blurb: "Licensing, schemes & transition compliance" },
+    { id: "Student", label: "Student", blurb: "ETD committees & technical standardization" },
+    { id: "Manufacturer", label: "Manufacturer", blurb: "Series approvals, critical components & tests" }
+  ];
+
+  let state = { role: null, mode: "signin" };
+
+  const screenRole = document.getElementById("screen-role");
+  const screenAuth = document.getElementById("screen-auth");
+  const roleList = document.getElementById("role-list");
+  const roleBadge = document.getElementById("role-badge");
+  const authHeading = document.getElementById("auth-heading");
+  const submitBtn = document.getElementById("submit-btn");
+  const modeSwitch = document.getElementById("mode-switch");
+  const demoHint = document.getElementById("demo-hint");
+  const usernameInput = document.getElementById("username");
+  const passwordInput = document.getElementById("password");
+  const toggleEye = document.getElementById("toggle-eye");
+  const errorBox = document.getElementById("error-box");
+  const authForm = document.getElementById("auth-form");
+
+  function renderRoles() {
+    roleList.innerHTML = "";
+    roles.forEach((r) => {
+      const btn = document.createElement("button");
+      btn.className = "role-item";
+      btn.innerHTML = `
+        <span>
+          <span class="title">${r.label}</span>
+          <span class="blurb">${r.blurb}</span>
+        </span>
+        <span class="chev">&rsaquo;</span>
+      `;
+      btn.addEventListener("click", () => chooseRole(r.id));
+      roleList.appendChild(btn);
+    });
+  }
+
+  function showScreen(name) {
+    screenRole.classList.toggle("hidden", name !== "role");
+    screenAuth.classList.toggle("hidden", name !== "auth");
+  }
+
+  function resetFields() {
+    usernameInput.value = "";
+    passwordInput.value = "";
+    errorBox.classList.add("hidden");
+    errorBox.textContent = "";
+    passwordInput.type = "password";
+    toggleEye.textContent = "Show";
+  }
+
+  function chooseRole(roleId) {
+    state.role = roleId;
+    state.mode = "signin";
+    resetFields();
+    renderAuthScreen();
+    showScreen("auth");
+  }
+
+  function renderAuthScreen() {
+    roleBadge.textContent = state.role;
+    const isSignin = state.mode === "signin";
+    authHeading.textContent = isSignin ? "Sign in to continue" : "Create your account";
+    submitBtn.textContent = isSignin ? "Sign in" : "Create account";
+    modeSwitch.innerHTML = isSignin
+      ? `New here? <button id="switch-to-signup">Create an account</button>`
+      : `Already registered? <button id="switch-to-signin">Sign in instead</button>`;
+
+    const switchBtn = document.getElementById(isSignin ? "switch-to-signup" : "switch-to-signin");
+    switchBtn.addEventListener("click", (e) => {
+      e.preventDefault();
+      state.mode = isSignin ? "signup" : "signin";
+      resetFields();
+      renderAuthScreen();
+    });
+
+    demoHint.innerHTML = `Demo account: <code>${state.role.toLowerCase()}_demo</code> / <code>demo123</code>`;
+    usernameInput.value = `${state.role.toLowerCase()}_demo`;
+    passwordInput.value = "demo123";
+  }
+
+  document.getElementById("back-btn").addEventListener("click", () => {
+    state.role = null;
+    showScreen("role");
+  });
+
+  toggleEye.addEventListener("click", () => {
+    const showing = passwordInput.type === "text";
+    passwordInput.type = showing ? "password" : "text";
+    toggleEye.textContent = showing ? "Show" : "Hide";
+  });
+
+  function showError(msg) {
+    errorBox.textContent = msg;
+    errorBox.classList.remove("hidden");
+  }
+
+  authForm.addEventListener("submit", (e) => {
+    e.preventDefault();
+    const username = usernameInput.value.trim();
+    const password = passwordInput.value;
+
+    if (!username || !password) {
+      showError("Enter a username and password to continue.");
+      return;
+    }
+
+    localStorage.setItem("bis_role", state.role);
+    localStorage.setItem("bis_user", username);
+    window.location.href = "/assistant";
+  });
+
+  renderRoles();
+</script>
+</body>
+</html>
