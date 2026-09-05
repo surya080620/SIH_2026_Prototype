@@ -1,21 +1,16 @@
-import requests
+from google import genai
 
-MODEL_NAME = "qwen3:4b"  # or "qwen3:4b" if that is what you have loaded
-OLLAMA_URL = "http://localhost:11434/api/generate"
+API_KEY = "AQ.Ab8RN6ILSnVyekjdGBt0LCb3oD4iYMlofyT_z6dwiSR2IXFKzQ"
 
-print(f"Testing connection to Ollama ({MODEL_NAME})...")
+client = genai.Client(api_key=API_KEY)
+
+print("Connecting to Gemini API...")
 try:
-    res = requests.post(
-        OLLAMA_URL,
-        json={
-            "model": MODEL_NAME,
-            
-            "prompt": "Say: LLM is working properly!",
-            "stream": False
-        },
-        timeout=15
+    response = client.models.generate_content(
+        model="gemini-2.5-flash",
+        contents="Say: Gemini is connected and working!"
     )
-    print("HTTP Status Code:", res.status_code)
-    print("Response Body:", res.text)
+    print("✓ Success! Model Output:")
+    print(response.text.strip())
 except Exception as e:
-    print("Connection Failed:", e)
+    print("Connection failed with error:\n", e)
