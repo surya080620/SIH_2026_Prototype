@@ -1,10 +1,9 @@
 import sqlite3
 import os
-import shutil
 import warnings
 import chromadb
 
-# Suppress benign community package sunset warnings
+# Suppress warnings
 warnings.filterwarnings("ignore", category=DeprecationWarning)
 
 from langchain_community.document_loaders import PyPDFDirectoryLoader
@@ -12,9 +11,14 @@ from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_community.vectorstores import Chroma
 from langchain_ollama import OllamaEmbeddings
 
+
 CHROMA_PATH = "./chroma_db"
 EMBEDDING_MODEL = "nomic-embed-text"
 OLLAMA_BASE_URL = "http://localhost:11434"
+
+PDF_DIRECTORY = "data/raw_standards"
+COLLECTION_NAME = "bis_knowledge"
+
 
 def setup_sqlite():
     conn = sqlite3.connect("standards.db")
@@ -38,6 +42,7 @@ def setup_sqlite():
     )
     """)
 
+    # License information
     cur.execute("""
     CREATE TABLE crs_licenses (
         r_number TEXT PRIMARY KEY,
@@ -94,13 +99,69 @@ def setup_sqlite():
     """, standards_data)
 
     licenses_data = [
-        ('R-41014095', 'Philips / Signify', 'Signify Innovations India Ltd', 'Self-Ballasted LED Lamp', 'IS 16102 (Part 1)', 'Valid', '2027-11-30'),
-        ('R-41028392', 'Havells', 'Havells India Limited', 'Self-Ballasted LED Lamp', 'IS 16102 (Part 1)', 'Valid', '2028-03-15'),
-        ('R-41013730', 'Apple', 'Hong Fu Jin Precision Electronics (Zhengzhou) Co., Ltd.', 'Mobile Phone', 'IS 13252(Part 1) & IS 16333(Part 3)', 'Registered', '2029-04-15'),
-        ('R-41013870', 'Apple', 'Luxsan Precision Industry (Kunshan) Co., Ltd.', 'Mobile Phone', 'IS 13252(Part 1) & IS 16333(Part 3)', 'Registered', '2029-04-20'),
-        ('R-41013706', 'Micromax / YU', 'Shenzhen Sprocomm Communication Equipment Co., Ltd.', 'Mobile Phone', 'IS 13252(Part 1)', 'Expired', '2023-04-15'),
-        ('R-41012416', 'Lenovo', 'Lenovo Mobile Communication Technology Ltd.', 'Mobile Phone', 'IS 13252(Part 1)', 'Cancelled', '2019-02-24'),
-        ('R-99012345', 'Counterfeit Brand', 'Unregistered Workshop', 'LED Lamp', 'IS 16102 (Part 1)', 'Cancelled / Fake', '2024-01-01')
+        (
+            'R-41014095',
+            'Philips / Signify',
+            'Signify Innovations India Ltd',
+            'Self-Ballasted LED Lamp',
+            'IS 16102 (Part 1)',
+            'Valid',
+            '2027-11-30'
+        ),
+        (
+            'R-41028392',
+            'Havells',
+            'Havells India Limited',
+            'Self-Ballasted LED Lamp',
+            'IS 16102 (Part 1)',
+            'Valid',
+            '2028-03-15'
+        ),
+        (
+            'R-41013730',
+            'Apple',
+            'Hong Fu Jin Precision Electronics (Zhengzhou) Co., Ltd.',
+            'Mobile Phone',
+            'IS 13252(Part 1) & IS 16333(Part 3)',
+            'Registered',
+            '2029-04-15'
+        ),
+        (
+            'R-41013870',
+            'Apple',
+            'Luxsan Precision Industry (Kunshan) Co., Ltd.',
+            'Mobile Phone',
+            'IS 13252(Part 1) & IS 16333(Part 3)',
+            'Registered',
+            '2029-04-20'
+        ),
+        (
+            'R-41013706',
+            'Micromax / YU',
+            'Shenzhen Sprocomm Communication Equipment Co., Ltd.',
+            'Mobile Phone',
+            'IS 13252(Part 1)',
+            'Expired',
+            '2023-04-15'
+        ),
+        (
+            'R-41012416',
+            'Lenovo',
+            'Lenovo Mobile Communication Technology Ltd.',
+            'Mobile Phone',
+            'IS 13252(Part 1)',
+            'Cancelled',
+            '2019-02-24'
+        ),
+        (
+            'R-99012345',
+            'Counterfeit Brand',
+            'Unregistered Workshop',
+            'LED Lamp',
+            'IS 16102 (Part 1)',
+            'Cancelled / Fake',
+            '2024-01-01'
+        )
     ]
 
     cur.executemany("""
@@ -111,53 +172,73 @@ def setup_sqlite():
 
     conn.commit()
     conn.close()
+
     print("✓ SQLite database 'standards.db' successfully seeded.")
 
+
 def setup_chroma_with_nomic():
-    pdf_dir = "data/raw_standards"
+    pdf_dir = PDF_DIRECTORY
+
     if not os.path.exists(pdf_dir):
         os.makedirs(pdf_dir)
 
     print(f"1. Loading PDFs from {pdf_dir} using LangChain...")
+
     loader = PyPDFDirectoryLoader(pdf_dir)
     docs = loader.load()
 
     if not docs:
-        print("Warning: No PDFs found in data/raw_standards! Please verify PDF placement.")
+        print(
+            "Warning: No PDFs found in data/raw_standards! "
+            "Please verify PDF placement."
+        )
         return
 
+    # Split documents into smaller overlapping chunks
     text_splitter = RecursiveCharacterTextSplitter(
         chunk_size=900,
         chunk_overlap=120,
         separators=["\n\n", "\n", " ", ""],
         length_function=len
     )
+
     split_docs = text_splitter.split_documents(docs)
+
     print(f"✓ Created {len(split_docs)} semantic chunks.")
 
-    # Explicitly connect to Chroma and delete the stale 384-dim collection
+    # Connect to Chroma and remove old collection if it exists
     client = chromadb.PersistentClient(path=CHROMA_PATH)
+
     try:
-        client.delete_collection("bis_knowledge")
-        print("✓ Stale 384-dim collection removed.")
+        client.delete_collection(COLLECTION_NAME)
+        print("✓ Old Chroma collection removed.")
     except Exception:
         pass
 
-    print(f"2. Initializing Ollama local embeddings ({EMBEDDING_MODEL})...")
+    print(
+        f"2. Initializing Ollama local embeddings "
+        f"({EMBEDDING_MODEL})..."
+    )
+
     embeddings = OllamaEmbeddings(
         model=EMBEDDING_MODEL,
         base_url=OLLAMA_BASE_URL
     )
 
-    print("3. Indexing 768-dim vectors in local Chroma store...")
+    print("3. Indexing vectors in local Chroma store...")
+
     Chroma.from_documents(
         documents=split_docs,
         embedding=embeddings,
-        collection_name="bis_knowledge",
+        collection_name=COLLECTION_NAME,
         persist_directory=CHROMA_PATH
     )
 
-    print(f"✓ Success: Vector collection embedded with {EMBEDDING_MODEL} (768-dim) and saved to {CHROMA_PATH}.")
+    print(
+        f"✓ Success: Vector collection embedded with "
+        f"{EMBEDDING_MODEL} and saved to {CHROMA_PATH}."
+    )
+
 
 if __name__ == "__main__":
     setup_sqlite()
